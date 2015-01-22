@@ -1,0 +1,25 @@
+{
+  "name": "dojikko",
+  "version": "0.0.1",
+  "description": "Simple, minimalist and friendly image viewer.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CamiloMM/dojikko.git"
+  },
+  "keywords": [
+    "simple",
+    "minimalist",
+    "image",
+    "viewer"
+  ],
+  "author": "Camilo Martin <http://camilo.is> (http://camilo.is/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CamiloMM/dojikko/issues"
+  },
+  "homepage": "https://github.com/CamiloMM/dojikko"
+}
