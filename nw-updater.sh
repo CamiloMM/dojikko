@@ -4,6 +4,8 @@
 # Go into script's directory for this subshell.
 cd "$(dirname "$BASH_SOURCE")"
 
+nwjs='nwjs' # Path to local NW.js install.
+
 showHelp() {
     echo 'This script checks and downloads NW.js builds.'
     echo 'Usage'
@@ -12,6 +14,14 @@ showHelp() {
     echo '    -h | --help   : show this help.'
     echo '    -v | --verify : Verify latest version from the server and print it.'
     exit 0
+}
+
+current() {
+    if [[ -f "$nwjs/version.txt" ]]; then
+        cat "$nwjs/version.txt"
+    else
+        echo 'none'
+    fi
 }
 
 verify() {
@@ -38,6 +48,7 @@ verify() {
 
     # Output the result.
     echo "Latest server version: $latest"
+    echo "Current local version: $(current)"
 }
 
 case "$1" in
