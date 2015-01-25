@@ -4,8 +4,10 @@
 # Go into script's directory for this subshell.
 cd "$(dirname "$BASH_SOURCE")"
 
-nwjs='nwjs' # Path to local NW.js install.
+# Path to local NW.js install.
+nwjs='nwjs'
 
+# Shows a help text and exits.
 showHelp() {
     echo 'This script checks and downloads NW.js builds.'
     echo 'Usage'
@@ -16,6 +18,7 @@ showHelp() {
     exit 0
 }
 
+# Returns current (local) version of NW.js, or "none".
 current() {
     if [[ -f "$nwjs/version.txt" ]]; then
         cat "$nwjs/version.txt"
@@ -24,6 +27,18 @@ current() {
     fi
 }
 
+# Checks if we should update the version, based on
+# local version and server version as $1 and $2.
+# Return code zero means we should update.
+shouldUpdate() {
+    if [[ "$1" == 'none' ]]; then
+        true
+    else
+        ./node_modules/.bin/semver "$2" -r \>"$1" > /dev/null
+    fi
+}
+
+# Verifies and prints remote and local versions, and says if we should update.
 verify() {
     # Downloads server.
     server='http://dl.nwjs.io'
@@ -49,8 +64,16 @@ verify() {
     # Output the result.
     echo "Latest server version: $latest"
     echo "Current local version: $(current)"
+
+    # Say if we should update.
+    if shouldUpdate "$(current)" "$latest"; then
+        echo 'We should update to the latest version.'
+    else
+        echo 'Local version is up-to-date.'
+    fi
 }
 
+# Run according to given arguments.
 case "$1" in
     -h | --help)
         showHelp ;;
