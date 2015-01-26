@@ -165,7 +165,7 @@ download() {
 
     # This directory must exist now; unless the NW.js guys changed something.
     new="$nwjs/$name"
-    if [[ ! -d "$new" ]];
+    if [[ ! -d "$new" ]]; then
         echo "I expected a $name directory in the NW.js zip, the devs must have"
         echo "changed something. This script needs to be updated, aborting now."
         exit 1
