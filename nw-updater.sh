@@ -1,5 +1,6 @@
 #!/bin/bash
 # This is a convenience to download the latest node-webkit zips.
+# Written by Camilo Martin, https://github.com/CamiloMM
 
 # Go into script's directory for this subshell.
 cd "$(dirname "$BASH_SOURCE")"
@@ -83,8 +84,8 @@ shouldUpdate() {
 
 # Verifies and prints remote and local versions, and says if we should update.
 verify() {
-    latest=$(getLatest);
-    current=$(getCurrent);
+    latest="$(getLatest)"
+    current="$(getCurrent)"
 
     # Output the result.
     echo "Latest server version: $latest"
@@ -98,14 +99,25 @@ verify() {
     fi
 }
 
+# Updates local copies with server downloads if necessary.
 update() {
-    latest=$(getLatest);
-    current=$(getCurrent);
+    latest="$(getLatest)"
+    current="$(getCurrent)"
 
     if shouldUpdate "$current" "$latest"; then
+        # Remove all content from the directory.
+        rm -rf "$nwjs"
+
+        # Recreate it, also serves to create it if necessary.
+        mkdir -p "$nwjs"
+
+        # Download all platforms required.
         for i in $platforms; do
             download "$latest" "$i"
         done
+
+        # Write the now-current version.
+        echo -n "$latest" > "$nwjs/version.txt"
     fi
 }
 
@@ -115,7 +127,52 @@ download() {
     version="$1"
     platform="$2"
 
-    # TODO
+    # There could be naming changes. I'm being very paranoid here.
+    digest="$(getMD5Sums | grep -F "$version" | grep -F "$platform" \
+            | grep -v symbol | grep -v driver | grep zip | tail -n 1)"
+
+    # Path and md5 for the file we want.
+    path="$(cut -d ' ' -f 3 <<< "$digest")"
+    md5="$(cut -d ' ' -f 1 <<< "$digest")"
+
+    if [[ -z "$path" ]]; then
+        echo 'Could not get an URL for the $version for $platform'
+    fi
+
+    # Download the file to temp directory.
+    url="$server/$path"
+    name="$(basename "$path" .zip)"
+    temp="/tmp/$name.zip"
+    wget "$url" -qO "$temp"
+
+    # If there was an error with that, we can't go on.
+    if (($?)); then
+        echo "There was a problem downloading the $version for $platform (URL: $url)"
+        exit 1
+    fi
+
+    # Verify downloaded package against server's MD5.
+    if ! md5sum -c --status <<< "$md5  $temp"; then
+        echo "Download corrupt, MD5 mismatch in $version for $platform (file: $temp)"
+        exit 1
+    fi
+
+    # Extract files.
+    unzip -qo "$temp" -d "$nwjs"
+
+    # Delete temp zip.
+    rm -f "$temp"
+
+    # This directory must exist now; unless the NW.js guys changed something.
+    new="$nwjs/$name"
+    if [[ ! -d "$new" ]];
+        echo "I expected a $name directory in the NW.js zip, the devs must have"
+        echo "changed something. This script needs to be updated, aborting now."
+        exit 1
+    fi
+
+    # Move verbosely-named directory to something more standard and convenient.
+    mv -f "$new" "$nwjs/$platform"
 }
 
 # Run according to given arguments.
