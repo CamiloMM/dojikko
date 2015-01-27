@@ -112,12 +112,15 @@ update() {
         mkdir -p "$nwjs"
 
         # Download all platforms required.
+        echo "Upgrading from $current to $latest:"
         for i in $platforms; do
             download "$latest" "$i"
         done
 
         # Write the now-current version.
         echo -n "$latest" > "$nwjs/version.txt"
+    else
+        echo "No upgrade necessary, we're on latest version ($latest)"
     fi
 }
 
@@ -126,6 +129,9 @@ download() {
     # Provide "version" and "platform" parameters.
     version="$1"
     platform="$2"
+
+    # We'll give a visual indicator for each download.
+    printf "%10s: " "$platform"
 
     # There could be naming changes. I'm being very paranoid here.
     digest="$(getMD5Sums | grep -F "$version" | grep -F "$platform" \
@@ -136,29 +142,42 @@ download() {
     md5="$(cut -d ' ' -f 1 <<< "$digest")"
 
     if [[ -z "$path" ]]; then
-        echo 'Could not get an URL for the $version for $platform'
+        echo "\nCould not get an URL for the $version for $platform"
     fi
+
+    echo -n 'downloading... '
 
     # Download the file to temp directory.
     url="$server/$path"
     name="$(basename "$path" .zip)"
     temp="/tmp/$name.zip"
-    wget "$url" -qO "$temp"
+
+    # This part is going to curl your brains. It's very sed.
+    echo -n '      '
+    curl -#Lo "$temp" "$url" 2>&1 | tr ,% .$'\n' | tr -s ' ' | cut -d ' ' -f 2- | sed -r \
+    's/(.)$/\1%/g;s/^(.)\./ \1./g;s/^(..)\./ \1./g;s/^/\x8\x8\x8\x8\x8\x8/g' | tr -d $'\n'
+    echo -n '100.0%'
 
     # If there was an error with that, we can't go on.
     if (($?)); then
-        echo "There was a problem downloading the $version for $platform (URL: $url)"
+        echo "\nThere was a problem downloading the $version for $platform (URL: $url)"
         exit 1
     fi
+
+    echo -n ' verifying... '
 
     # Verify downloaded package against server's MD5.
     if ! md5sum -c --status <<< "$md5  $temp"; then
-        echo "Download corrupt, MD5 mismatch in $version for $platform (file: $temp)"
+        echo "\nDownload corrupt, MD5 mismatch in $version for $platform (file: $temp)"
         exit 1
     fi
 
+    echo -n 'extracting... '
+
     # Extract files.
     unzip -qo "$temp" -d "$nwjs"
+
+    echo -n 'cleaning... '
 
     # Delete temp zip.
     rm -f "$temp"
@@ -173,6 +192,14 @@ download() {
 
     # Move verbosely-named directory to something more standard and convenient.
     mv -f "$new" "$nwjs/$platform"
+
+    # If there was an error with that, we can't go on.
+    if (($?)); then
+        echo "\nCouldn't move $new"
+        exit 1
+    fi
+
+    echo 'done.'
 }
 
 # Run according to given arguments.
