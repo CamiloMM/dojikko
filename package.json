@@ -3,10 +3,13 @@
   "version": "0.0.1",
   "description": "Simple, minimalist and friendly image viewer.",
   "main": "index.html",
+  "single-instance": false,
   "window": {
     "title": "Dojikko",
     "toolbar": false,
-    "icon": "icon.png"
+    "icon": "icon.png",
+    "show": false,
+    "transparent": false
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -30,5 +33,9 @@
   "homepage": "https://github.com/CamiloMM/dojikko",
   "devDependencies": {
     "semver": "^4.2.0"
+  },
+  "dependencies": {
+    "file-url": "^1.0.0",
+    "jquery": "^2.1.3"
   }
 }

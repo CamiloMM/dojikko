@@ -2,9 +2,17 @@
 <html>
     <head>
         <title>Dojikko</title>
-		<script src="main.js"></script>
 		<link rel="stylesheet" href="main.css"></link>
+		<script src="main.js"></script>
     </head>
     <body>
+        <div id="viewer"></div>
+        <script>
+            // I'm doing this to have slightly less "blank window time".
+            // It's not a perfect solution, and temporary until I'm ready to
+            // make a whole custom window frame to safely turn on transparent
+            // mode (which screws up with the native window frame on Windows).
+            require('nw.gui').Window.get().show();
+        </script>
     </body>
 </html>
