@@ -6,7 +6,7 @@ body {
     background: #363636;
 }
 
-#viewer {
+#viewer[data-mode="fitdown"] {
     font-size: 0;
     text-align: center;
     position: absolute;
@@ -16,7 +16,7 @@ body {
     height: 100%;
 }
 
-#viewer > img {
+#viewer[data-mode="fitdown"] > img {
     max-height: 100%;
     max-width: 100%;
     margin: auto;
@@ -24,7 +24,7 @@ body {
     vertical-align: middle;
 }
 
-.trick {
+#viewer[data-mode="fitdown"] > .trick {
     display: inline-block;
     vertical-align: middle;
     height: 100%;
